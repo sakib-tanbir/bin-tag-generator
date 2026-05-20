@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bin Tag Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📦 Bin Tag Generator</h1>
+      <p>Upload your Put Away Excel file to automatically generate bin tags as PDF</p>
+    </header>
+
+    <div class="upload-section" id="uploadSection">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">📂</div>
+        <p>Drag & drop your Excel file here</p>
+        <p class="sub">or</p>
+        <label class="btn-upload" for="fileInput">Browse File</label>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" hidden />
+        <p class="file-hint">Supports .xlsx / .xls files</p>
+      </div>
+    </div>
+
+    <div class="preview-section" id="previewSection" style="display:none">
+      <div class="file-info" id="fileInfo"></div>
+      <div class="data-summary" id="dataSummary"></div>
+      <div class="actions">
+        <button class="btn-secondary" id="btnReset">↩ Upload Another File</button>
+        <button class="btn-primary" id="btnGenerate">🖨️ Generate PDF Bin Tags</button>
+      </div>
+    </div>
+
+    <div class="progress-section" id="progressSection" style="display:none">
+      <div class="spinner"></div>
+      <p id="progressText">Generating bin tags…</p>
+    </div>
+  </div>
+
+  <!-- Hidden print area -->
+  <div id="printArea" style="display:none"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
