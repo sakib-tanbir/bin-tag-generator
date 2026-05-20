@@ -1,7 +1,7 @@
 # 📦 Bin Tag Generator
 
 A browser-based tool that reads a warehouse Put Away Excel file and automatically generates **PDF bin tags** — one per row — matching your Bin Tag template format.
-https://tanbirsakib.github.io/bin-tag-generator/
+
 ---
 
 ## Features
