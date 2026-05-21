@@ -139,7 +139,12 @@ function parseWorkbook(arrayBuffer) {
 function getCellValue(sheet, addr) {
   const cell = sheet[addr];
   if (!cell) return '';
-  return String(cell.v || cell.w || '').trim();
+  // If it's a date cell, use UTC methods to avoid timezone rollback
+  if (cell.t === 'd' && cell.v instanceof Date) {
+    const d = cell.v;
+    return `${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;
+  }
+  return String(cell.w || cell.v || '').trim();
 }
 
 function formatDate(val) {
