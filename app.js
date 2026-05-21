@@ -164,7 +164,7 @@ function formatDateStr(val) {
   // try parsing
   try {
     const d = new Date(s);
-    if (!isNaN(d)) return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    if (!isNaN(d)) return `${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;
   } catch(_) {}
   return s;
 }
