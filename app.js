@@ -68,7 +68,7 @@ function parseWorkbook(arrayBuffer) {
   const srvData = XLSX.utils.sheet_to_json(srvSheet, { header: 1, raw: false, dateNF: 'DD/MM/YYYY' });
 
   // Row 1 (index 1): Date is at col B (index 1)
-  const shipmentDate = getCellValue(srvSheet, 'G3') || '';
+  const shipmentDate = getCellValue(srvSheet, 'B3') || '';
   // Row 2 (index 2): INV# col B, SRV# col H, Container col M (approx)
   const invoiceNo    = getCellValue(srvSheet, 'B4') || '';
   const srvNo        = getCellValue(srvSheet, 'H4') || '';
