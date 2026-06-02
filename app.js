@@ -139,10 +139,17 @@ function parseWorkbook(arrayBuffer) {
 function getCellValue(sheet, addr) {
   const cell = sheet[addr];
   if (!cell) return '';
-  // If it's a date cell, use UTC methods to avoid timezone rollback
-  if (cell.t === 'd' && cell.v instanceof Date) {
-    const d = cell.v;
-    return `${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;
+  // If cell is a date type, use the formatted value (w) directly to avoid timezone shift
+  if (cell.t === 'd' || cell.t === 'n') {
+    if (cell.w) return cell.w.trim();
+    // Fallback: manually parse the serial number without UTC conversion
+    if (typeof cell.v === 'number') {
+      const date = new Date(Math.round((cell.v - 25569) * 86400 * 1000));
+      const d = date.getUTCDate();
+      const m = date.getUTCMonth() + 1;
+      const y = date.getUTCFullYear();
+      return `${d}/${m}/${y}`;
+    }
   }
   return String(cell.w || cell.v || '').trim();
 }
@@ -169,7 +176,7 @@ function formatDateStr(val) {
   // try parsing
   try {
     const d = new Date(s);
-    if (!isNaN(d)) return `${d.getUTCDate()}/${d.getUTCMonth()+1}/${d.getUTCFullYear()}`;
+    if (!isNaN(d)) return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
   } catch(_) {}
   return s;
 }
@@ -401,22 +408,24 @@ function drawBinTag(pdf, tag, meta, x, y, w, h) {
       fs -= 0.5;
     }
 
+    const tw = pdf.getTextWidth(val);
+    const fh = fs * 0.35;
     pdf.text(
       val,
-      colX[ci] + colW[ci] / 2,
-      rowY[3] + rowH[3] / 2 + pdf.getTextWidth(val) / 2,
+      colX[ci] + colW[ci] / 2 + fh / 2,
+      rowY[3] + rowH[3] / 2 + tw / 2,
       { align: 'left', angle: 90 }
     );
   }
 
-  verticalCell(0, 28, true); // SKU
-  verticalCell(1, 26, true); // Batch/Lot No
+  verticalCell(0, 36, true); // SKU
+  verticalCell(1, 32, true); // Batch/Lot No
   // Description stays horizontal (col index 2)
   cell(colX[2], rowY[3], colW[2], rowH[3], tag.description,
     { fontSize: 18, bold: true, wrap: true }
   );
   verticalCell(3, 24, true); // Date of Expiry
-  verticalCell(4, 32, true); // QTY Received
+  verticalCell(4, 38, true); // QTY Received
 
   // ── ROW 4: spacer (empty row with border) ────────────────────
   pdf.setDrawColor(0);
