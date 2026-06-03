@@ -135,7 +135,6 @@ function parseWorkbook(arrayBuffer) {
     }
   };
 }
-/* prev date code
 function getCellValue(sheet, addr) {
   const cell = sheet[addr];
   if (!cell) return '';
@@ -181,85 +180,8 @@ function formatDateStr(val) {
   } catch(_) {}
   return s;
 }
-prev date code*/
-//new date code
-function getCellValue(sheet, addr) {
-  const cell = sheet[addr];
-  if (!cell) return '';
 
-  if (cell.t === 'd' || cell.t === 'n') {
-    let serial = cell.v;
 
-    if (cell.v instanceof Date) {
-      serial = (cell.v.getTime() / 86400000) + 25569;
-    }
-
-    if (typeof serial === 'number') {
-      const date = new Date(Math.round((serial - 25569) * 86400 * 1000) + 43200000);
-      //const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
-      const d = date.getUTCDate();
-      const y = date.getUTCFullYear();
-      const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      const m = monthNames[date.getUTCMonth()];
-      return `${d} ${m} ${y}`; // e.g. 1 June 2026
-    }
-  }
-
-  return String(cell.w || cell.v || '').trim();
-}
-
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
-];
-
-// Parses any date value and returns a Date object (UTC-safe)
-function parseToDate(val) {
-  if (!val) return null;
-  const s = String(val).trim();
-
-  // Format: "1 June 2026" or "15 March 2025"
-  const namedMatch = s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
-  if (namedMatch) {
-    const d = parseInt(namedMatch[1]);
-    const m = MONTH_NAMES.findIndex(n => n.toLowerCase() === namedMatch[2].toLowerCase());
-    const y = parseInt(namedMatch[3]);
-    if (m !== -1) return new Date(Date.UTC(y, m, d));
-  }
-
-  // Format: "DD/MM/YYYY" or "D/M/YY"
-  const slashMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (slashMatch) {
-    let [_, d, m, y] = slashMatch;
-    if (y.length === 2) y = '20' + y;
-    return new Date(Date.UTC(parseInt(y), parseInt(m) - 1, parseInt(d)));
-  }
-
-  // Fallback: native parse
-  const fallback = new Date(s);
-  if (!isNaN(fallback)) return fallback;
-
-  return null;
-}
-
-// Returns "1 June 2026" format
-function formatDate(val) {
-  const date = parseToDate(val);
-  if (!date) return String(val || '').trim();
-  const d = date.getUTCDate();
-  const m = MONTH_NAMES[date.getUTCMonth()];
-  const y = date.getUTCFullYear();
-  return `${d} ${m} ${y}`;
-}
-
-// Same as formatDate — kept for backward compatibility
-function formatDateStr(val) {
-  return formatDate(val);
-}
-//new date code
 
 // ── UI: Preview ───────────────────────────────────────────────────
 function showPreview(fileName, data) {
