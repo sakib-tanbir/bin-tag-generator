@@ -195,7 +195,8 @@ function getCellValue(sheet, addr) {
     }
 
     if (typeof serial === 'number') {
-      const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
+      const date = new Date(Math.round((serial - 25569) * 86400 * 1000) + 43200000);
+      //const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
       const d = date.getUTCDate();
       const y = date.getUTCFullYear();
       const monthNames = [
