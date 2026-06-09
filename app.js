@@ -59,7 +59,8 @@ function handleFile(file) {
 
 // ── Excel parsing ─────────────────────────────────────────────────
 function parseWorkbook(arrayBuffer) {
-  const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
+  //const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
+  const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: false }); 
 
   // ── SRV sheet → shipment received date, SRV#, Invoice#, Container# ──
   const srvSheet = wb.Sheets['SRV'];
