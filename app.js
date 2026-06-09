@@ -60,7 +60,7 @@ function handleFile(file) {
 // ── Excel parsing ─────────────────────────────────────────────────
 function parseWorkbook(arrayBuffer) {
   const wb = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
-  
+
   // ── SRV sheet → shipment received date, SRV#, Invoice#, Container# ──
   const srvSheet = wb.Sheets['SRV'];
   if (!srvSheet) throw new Error('Sheet "SRV" not found in this workbook.');
@@ -135,45 +135,29 @@ function parseWorkbook(arrayBuffer) {
     }
   };
 }
-//new date code
-const MONTH_NAMES = ['January','February','March','April','May','June',
-                     'July','August','September','October','November','December'];
-
-// Parse any date value coming from SheetJS into a JS Date, or null.
-
-   //new date parser
-  const s = String(val).trim();
-  if (!s) return null;
-  // Numeric Excel serial
-  if (!isNaN(s) && s !== '') {
-    const serial = Number(s);
-    return new Date(Math.round((serial - 25569) * 86400 * 1000) + 43200000); // noon UTC
-  }
-  // DD/MM/YYYY or D/M/YY style
-  const parts = s.split('/');
-  if (parts.length === 3) {
-    let [d, m, y] = parts.map(Number);
-    if (y < 100) y += 2000;
-    return new Date(Date.UTC(y, m - 1, d));
-  }
-  // Fallback: native parse
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
-}
-
 function getCellValue(sheet, addr) {
   const cell = sheet[addr];
   if (!cell) return '';
+  // If cell is a date type, use the formatted value (w) directly to avoid timezone shift
   if (cell.t === 'd' || cell.t === 'n') {
     if (cell.w) return cell.w.trim();
+    // Fallback: manually parse the serial number without UTC conversion
+    if (typeof cell.v === 'number') {
+      const date = new Date(Math.round((cell.v - 25569) * 86400 * 1000));
+      const d = date.getUTCDate();
+      const m = date.getUTCMonth() + 1;
+      const y = date.getUTCFullYear();
+      return `${d}/${m}/${y}`;
+    }
   }
   return String(cell.w || cell.v || '').trim();
 }
 
+
 function formatDate(val) {
   if (!val) return '';
   const s = String(val).trim();
-  // Already DD/M/YY or DD/MM/YYYY — normalise to DD/MM/YYYY
+  // Already formatted like DD/M/YY or DD/MM/YYYY — normalise to DD/MM/YYYY
   const parts = s.split('/');
   if (parts.length === 3) {
     let [d, m, y] = parts;
@@ -183,18 +167,21 @@ function formatDate(val) {
   return s;
 }
 
-// Formats shipment date as DD/Month/YYYY  e.g. 01/June/2026
 function formatDateStr(val) {
+  // Handle numeric date serial or string
   if (!val) return '';
-  const parts = String(val).trim().split('/');
-  if (parts.length === 3) {
-    let [d, m, y] = parts.map(Number);
-    if (y < 100) y += 2000;
-    return `${String(d).padStart(2,'0')}/${MONTH_NAMES[m - 1]}/${y}`;
-  }
-  return String(val).trim();
+  const s = String(val).trim();
+  // already d/m/yyyy style?
+  if (s.includes('/')) return s;
+  // try parsing
+  try {
+    const d = new Date(s);
+    if (!isNaN(d)) return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  } catch(_) {}
+  return s;
 }
-//new date code
+
+
 
 // ── UI: Preview ───────────────────────────────────────────────────
 function showPreview(fileName, data) {
