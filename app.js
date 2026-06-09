@@ -135,29 +135,56 @@ function parseWorkbook(arrayBuffer) {
     }
   };
 }
+//new date code
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+
+// Parse any date value coming from SheetJS into a JS Date, or null.
+function parseToDate(val) {
+  if (!val && val !== 0) return null;
+  // Already a Date object (cell.t === 'd')
+  if (val instanceof Date) return isNaN(val) ? null : val;
+  const s = String(val).trim();
+  if (!s) return null;
+  // Numeric Excel serial
+  if (!isNaN(s) && s !== '') {
+    const serial = Number(s);
+    return new Date(Math.round((serial - 25569) * 86400 * 1000) + 43200000); // noon UTC
+  }
+  // DD/MM/YYYY or D/M/YY style
+  const parts = s.split('/');
+  if (parts.length === 3) {
+    let [d, m, y] = parts.map(Number);
+    if (y < 100) y += 2000;
+    return new Date(Date.UTC(y, m - 1, d));
+  }
+  // Fallback: native parse
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
 function getCellValue(sheet, addr) {
   const cell = sheet[addr];
   if (!cell) return '';
-  // If cell is a date type, use the formatted value (w) directly to avoid timezone shift
-  if (cell.t === 'd' || cell.t === 'n') {
+  if (cell.t === 'd') {
+    // cell.v is already a Date object when cellDates:true
+    const d = parseToDate(cell.v);
+    if (d) return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
+  }
+  if (cell.t === 'n') {
     if (cell.w) return cell.w.trim();
-    // Fallback: manually parse the serial number without UTC conversion
     if (typeof cell.v === 'number') {
-      const date = new Date(Math.round((cell.v - 25569) * 86400 * 1000));
-      const d = date.getUTCDate();
-      const m = date.getUTCMonth() + 1;
-      const y = date.getUTCFullYear();
-      return `${d}/${m}/${y}`;
+      const d = parseToDate(cell.v);
+      if (d) return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
     }
   }
   return String(cell.w || cell.v || '').trim();
 }
 
-
 function formatDate(val) {
   if (!val) return '';
   const s = String(val).trim();
-  // Already formatted like DD/M/YY or DD/MM/YYYY — normalise to DD/MM/YYYY
+  // Already DD/M/YY or DD/MM/YYYY — normalise to DD/MM/YYYY
   const parts = s.split('/');
   if (parts.length === 3) {
     let [d, m, y] = parts;
@@ -167,21 +194,19 @@ function formatDate(val) {
   return s;
 }
 
+// Formats shipment date as DD/Month/YYYY  e.g. 01/June/2026
 function formatDateStr(val) {
-  // Handle numeric date serial or string
   if (!val) return '';
-  const s = String(val).trim();
-  // already d/m/yyyy style?
-  if (s.includes('/')) return s;
-  // try parsing
-  try {
-    const d = new Date(s);
-    if (!isNaN(d)) return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
-  } catch(_) {}
-  return s;
+  const d = parseToDate(val);
+  if (d) {
+    const day   = String(d.getUTCDate()).padStart(2, '0');
+    const month = MONTH_NAMES[d.getUTCMonth()];
+    const year  = d.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  return String(val).trim();
 }
-
-
+//new date code
 
 // ── UI: Preview ───────────────────────────────────────────────────
 function showPreview(fileName, data) {
