@@ -143,7 +143,13 @@ const MONTH_NAMES = ['January','February','March','April','May','June',
 function parseToDate(val) {
   if (!val && val !== 0) return null;
   // Already a Date object (cell.t === 'd')
-  if (val instanceof Date) return isNaN(val) ? null : val;
+  //if (val instanceof Date) return isNaN(val) ? null : val;
+  //new date parser 
+  if (val instanceof Date) {
+  if (isNaN(val)) return null;
+  return new Date(Date.UTC(val.getUTCFullYear(), val.getUTCMonth(), val.getUTCDate(), 12, 0, 0));
+}
+   //new date parser
   const s = String(val).trim();
   if (!s) return null;
   // Numeric Excel serial
