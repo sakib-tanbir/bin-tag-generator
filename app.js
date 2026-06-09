@@ -172,17 +172,8 @@ function parseToDate(val) {
 function getCellValue(sheet, addr) {
   const cell = sheet[addr];
   if (!cell) return '';
-  if (cell.t === 'd') {
-    // cell.v is already a Date object when cellDates:true
-    const d = parseToDate(cell.v);
-    if (d) return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
-  }
-  if (cell.t === 'n') {
+  if (cell.t === 'd' || cell.t === 'n') {
     if (cell.w) return cell.w.trim();
-    if (typeof cell.v === 'number') {
-      const d = parseToDate(cell.v);
-      if (d) return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
-    }
   }
   return String(cell.w || cell.v || '').trim();
 }
@@ -203,12 +194,11 @@ function formatDate(val) {
 // Formats shipment date as DD/Month/YYYY  e.g. 01/June/2026
 function formatDateStr(val) {
   if (!val) return '';
-  const d = parseToDate(val);
-  if (d) {
-    const day   = String(d.getUTCDate()).padStart(2, '0');
-    const month = MONTH_NAMES[d.getUTCMonth()];
-    const year  = d.getUTCFullYear();
-    return `${day}/${month}/${year}`;
+  const parts = String(val).trim().split('/');
+  if (parts.length === 3) {
+    let [d, m, y] = parts.map(Number);
+    if (y < 100) y += 2000;
+    return `${String(d).padStart(2,'0')}/${MONTH_NAMES[m - 1]}/${y}`;
   }
   return String(val).trim();
 }
